@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FNE Reports</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <style>
+        .vertical-nav {
+            min-width: 17rem;
+            width: 20%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f7f7f7;
+        }
+
+        .page-content {
+            width: 80%;
+            margin-left: 20%;
+            padding: 30px 0;
+        }
+
+        .nav-item .nav-link {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="vertical-nav bg-white">
+    <div class="py-4 px-3 mb-4 bg-light">
+        <div class="media d-flex align-items-center">
+            <div class="media-body">
+                <h4 class="m-0"><a href="/" class="text-dark text-decoration-none">DVMFNE2 Monitor</a></h4>
+            </div>
+        </div>
+    </div>
+    <ul class="nav flex-column bg-white mb-0">
+        <li class="nav-item">
+            <a href="/peers" class="nav-link text-dark">
+                Peers
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/tg_table" class="nav-link text-dark">
+                Routing Rules
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link text-dark">
+                Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/affs" class="nav-link text-dark">
+                Affiliations
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="page-content">
+    <div class="container mt-5">
+        <h1>FNE Reports</h1>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>System</th>
+                <th>Peer</th>
+                <th>SRC_ID</th>
+                <th>TGID</th>
+                <th>STREAM ID</th>
+                <th>Value</th>
+                <th>List</th>
+            </tr>
+            </thead>
+            <tbody id="reportTbody">
+            <% reports.forEach(report => { %>
+                <tr>
+                    <td><%= report.SystemName %></td>
+                    <td><%= report.PEER %></td>
+                    <td><%= report.SRC_ID %></td>
+                    <td><%= report.TGID ? report.TGID : report.DST_ID %></td>
+                    <td><%= report['STREAM ID'] %></td>
+                    <td><%= report.Value %></td>
+                    <td><%= report.List %></td>
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const socket = io.connect();
+
+    socket.on('newReport', (report) => {
+        const tbody = document.getElementById('reportTbody');
+        const tr = document.createElement('tr');
+
+        ['SystemName', 'PEER', 'SRC_ID', 'TGID', 'STREAM ID', 'Value', 'List'].forEach(key => {
+            const td = document.createElement('td');
+
+            if (key === 'TGID') {
+                td.textContent = report.TGID ? report.TGID : report.DST_ID;
+            } else {
+                td.textContent = report[key];
+            }
+
+            tr.appendChild(td);
+        });
+
+        if (tbody.firstChild) {
+            tbody.insertBefore(tr, tbody.firstChild);
+        } else {
+            tbody.appendChild(tr);
+        }
+    });
+
+</script>
+</body>
+
+</html>

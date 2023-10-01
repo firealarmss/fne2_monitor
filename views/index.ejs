@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landing Page</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .vertical-nav {
+            min-width: 17rem;
+            width: 20%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s;
+            background-color: #f7f7f7;
+        }
+
+        .page-content {
+            width: 80%;
+            margin-left: 20%;
+        }
+
+        .nav-item .nav-link {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="vertical-nav bg-white">
+    <div class="py-4 px-3 mb-4 bg-light">
+        <div class="media d-flex align-items-center">
+            <div class="media-body">
+                <h4 class="m-0"><a href="/" class="text-dark text-decoration-none">DVMFNE2 Monitor</a></h4>
+            </div>
+        </div>
+    </div>
+    <ul class="nav flex-column bg-white mb-0">
+        <li class="nav-item">
+            <a href="/peers" class="nav-link text-dark">
+                <i class="fa fa-th-large mr-3 text-primary fa-fw"></i> Peers
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/tg_table" class="nav-link text-dark">
+                <i class="fa fa-address-card mr-3 text-primary fa-fw"></i> Routing Rules
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link text-dark">
+                <i class="fa fa-cubes mr-3 text-primary fa-fw"></i> Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/affs" class="nav-link text-dark">
+                <i class="fa fa-cubes mr-3 text-primary fa-fw"></i> Affiliations
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="page-content p-5" id="content">
+    <div class="container mt-5">
+        <div class="jumbotron">
+            <h1 class="display-4">DVMFNE2 Monitor</h1>
+            <p class="lead">Webpage to monitor activity and view information about your fne2 install</p>
+            <hr class="my-4">
+            <p>Get whacker tones without that felony</p>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://kit.fontawesome.com/a076d05399.js"></script>
+</body>
+
+</html>

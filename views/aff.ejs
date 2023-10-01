@@ -1,0 +1,229 @@
+<!--
+    This page would not be possible without stackoverflow
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Affs</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <style>
+        .vertical-nav {
+            min-width: 17rem;
+            width: 20%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f7f7f7;
+        }
+
+        .page-content {
+            width: 80%;
+            margin-left: 20%;
+            padding: 30px 0;
+        }
+
+        .nav-item .nav-link {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+<div class="vertical-nav bg-white">
+    <div class="py-4 px-3 mb-4 bg-light">
+        <div class="media d-flex align-items-center">
+            <div class="media-body">
+                <h4 class="m-0"><a href="/" class="text-dark text-decoration-none">DVMFNE2 Monitor</a></h4>
+            </div>
+        </div>
+    </div>
+    <ul class="nav flex-column bg-white mb-0">
+        <li class="nav-item">
+            <a href="/peers" class="nav-link text-dark">
+                Peers
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/tg_table" class="nav-link text-dark">
+                Routing Rules
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link text-dark">
+                Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/affs" class="nav-link text-dark">
+                Affiliations
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="container mt-5">
+    <h1>Affs</h1>
+    <%
+    var totalPeers = 0;
+    var totalRadioIDs = 0;
+    var totalTGIDs = 0;
+
+    if (reports && reports.length) {
+        reports.forEach(report => {
+            var parsedList = JSON.parse(report.List);
+            totalPeers += Object.keys(parsedList).length;
+            for (var peerID in parsedList) {
+                totalTGIDs += Object.keys(parsedList[peerID]).length;
+                for (var tgid in parsedList[peerID]) {
+                    totalRadioIDs += parsedList[peerID][tgid].length;
+                }
+            }
+        });
+    }
+    %>
+        <div>Total Peers: <span id="totalPeersCount">0</span></div>
+        <div>Total TGIDs: <span id="totalTGIDsCount">0</span></div>
+        <div>Total Radio IDs: <span id="totalRadioIDsCount">0</span></div>
+    <div id="affsContainer">
+        <% if (reports && reports.length) { %>
+            <% reports.forEach(report => { %>
+                <ul class="list-group mb-3">
+                    <li class="list-group-item">SystemName: <%= report.SystemName %></li>
+                    <li class="list-group-item">
+                        <ul class="list-group mt-2">
+                            <%
+                                var parsedList = JSON.parse(report.List);
+                                    for (var peerID in parsedList) {
+                                var currentPeerTGIDs = Object.keys(parsedList[peerID]).length;
+                                var currentPeerRadioIDs = 0;
+                                for (var tgid in parsedList[peerID]) {
+                                    currentPeerRadioIDs += parsedList[peerID][tgid].length;
+                                }
+                            %>
+                            <li class="list-group-item">
+                                PEER ID: <%= peerID %> | Total TGIDs: <%= currentPeerTGIDs %> | Total Radio IDs: <%= currentPeerRadioIDs %>
+                                <ul class="list-group mt-2">
+                                    <% for (var tgid in parsedList[peerID]) { %>
+                                        <li class="list-group-item">
+                                            TGID: <%= tgid %>
+                                            <ul class="list-group mt-2">
+                                                <% parsedList[peerID][tgid].forEach(srcID => { %>
+                                                    <li class="list-group-item">SRCID: <%= srcID %></li>
+                                                <% }); %>
+                                            </ul>
+                                        </li>
+                                    <% } %>
+                                </ul>
+                            </li>
+                            <% } %>
+                        </ul>
+                    </li>
+                </ul>
+            <% }); %>
+        <% } %>
+    </div>
+
+    <script>
+        const socket = io.connect();
+
+        socket.on('newAffsReport', (report) => {
+            updateAffs(report);
+            updateCounterValues();
+        });
+
+        function updateAffs(report) {
+            const container = document.getElementById('affsContainer');
+            const systemNameElement = container.querySelector(`.list-group[data-systemname="${report.SystemName}"]`);
+
+            if (systemNameElement) {
+                systemNameElement.outerHTML = generateSystemHTML(report);
+            } else {
+                container.innerHTML += generateSystemHTML(report);
+            }
+        }
+
+        function generateSystemHTML(report) {
+            const parsedList = JSON.parse(report.List);
+            const peerCount = Object.keys(parsedList).length;
+
+            return `
+            <ul class="list-group mb-3" data-systemname="${report.SystemName}">
+                <li class="list-group-item">SystemName: ${report.SystemName} | Total Peers: ${peerCount}</li>
+                <li class="list-group-item">
+                    <ul class="list-group mt-2" data-parsedlist='${report.List}'>
+                        ${generateListHTML(report.List)}
+                    </ul>
+                </li>
+            </ul>
+           `;
+        }
+
+        function generateListHTML(list) {
+            const parsedList = JSON.parse(list);
+            let html = '';
+            for (let peerID in parsedList) {
+                const tgidsCount = Object.keys(parsedList[peerID]).length;
+                let ridsCount = 0;
+                let tgidHTML = '';
+
+                for (let tgid in parsedList[peerID]) {
+                    const currentTgidRidsCount = parsedList[peerID][tgid].length;
+                    ridsCount += currentTgidRidsCount;
+                    tgidHTML += `
+                <li class="list-group-item">
+                    TGID: ${tgid} | Total RIDs: ${currentTgidRidsCount}
+                    <ul class="list-group mt-2">
+            `;
+                    parsedList[peerID][tgid].forEach(srcID => {
+                        tgidHTML += `<li class="list-group-item">SRCID: ${srcID}</li>`;
+                    });
+                    tgidHTML += `</ul></li>`;
+                }
+
+                html += `
+            <li class="list-group-item">
+                PEER ID: ${peerID} | Total TGIDs: ${tgidsCount} | Total RIDs: ${ridsCount}
+                <ul class="list-group mt-2">${tgidHTML}</ul>
+            </li>
+        `;
+            }
+            return html;
+        }
+        function updateCounterValues() {
+            const reportsContainer = document.getElementById('affsContainer');
+            const reports = reportsContainer.querySelectorAll('.list-group[data-systemname]');
+
+            let totalPeers = 0;
+            let totalRadioIDs = 0;
+            let totalTGIDs = 0;
+
+            reports.forEach(report => {
+                const parsedListData = report.querySelector('.list-group-item ul').dataset.parsedlist;
+                if(parsedListData) {
+                    const parsedList = JSON.parse(parsedListData);
+                    totalPeers += Object.keys(parsedList).length;
+                    for (let peerID in parsedList) {
+                        totalTGIDs += Object.keys(parsedList[peerID]).length;
+                        for (let tgid in parsedList[peerID]) {
+                            totalRadioIDs += parsedList[peerID][tgid].length;
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('totalPeersCount').textContent = totalPeers;
+            document.getElementById('totalTGIDsCount').textContent = totalTGIDs;
+            document.getElementById('totalRadioIDsCount').textContent = totalRadioIDs;
+        }
+    </script>
+</div>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+general: # General/overall settings
+  ignoreAdjBcast: false # On a large system these messages fill up the logs etc and are quite annoying
+  logLevel: 1 # For log file: 0-disabled, 1-normal, 2-debug
+  debug: false # For console debug logging
+  logPath: './'
+
+webServer: # Web server settings
+  port: 3000 # Bind port for web server
+  address: 0.0.0.0 # Bind address for web server
+
+fne: #FNE Reporter settings
+  port: 5555 # Bind port to listen for fne reports
+  address: 0.0.0.0 # Bind address to listen for fne reports

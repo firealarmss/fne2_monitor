@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peers</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+    <style>
+        .vertical-nav {
+            min-width: 17rem;
+            width: 20%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
+            background-color: #f7f7f7;
+        }
+
+        .page-content {
+            width: 80%;
+            margin-left: 20%;
+            padding: 30px 0;
+        }
+
+        .nav-item .nav-link {
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="vertical-nav bg-white">
+    <div class="py-4 px-3 mb-4 bg-light">
+        <div class="media d-flex align-items-center">
+            <div class="media-body">
+                <h4 class="m-0"><a href="/" class="text-dark text-decoration-none">DVMFNE2 Monitor</a></h4>
+            </div>
+        </div>
+    </div>
+    <ul class="nav flex-column bg-white mb-0">
+        <li class="nav-item">
+            <a href="/peers" class="nav-link text-dark">
+                Peers
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/tg_table" class="nav-link text-dark">
+                Routing Rules
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/reports" class="nav-link text-dark">
+                Reports
+            </a>
+        </li>
+        <li class="nav-item">
+            <a href="/affs" class="nav-link text-dark">
+                Affiliations
+            </a>
+        </li>
+    </ul>
+</div>
+
+<div class="page-content">
+    <div class="container mt-5">
+        <h1>Peers</h1>
+        <div id="peerCount" class="mb-3"></div>
+        <table class="table">
+            <thead class="thead-dark">
+            <tr>
+                <th>System</th>
+                <th>PeerID</th>
+                <th>Identity</th>
+                <th>Address</th>
+                <th>RxFrequency</th>
+                <th>TxFrequency</th>
+            </tr>
+            </thead>
+            <tbody id="peerTbody">
+            <%peers = JSON.parse(peers.peers); %>
+            <% peers.forEach(peer => { %>
+                <tr>
+                    <td><%= peer.SystemName %></td>
+                    <td><%= peer.PeerID %></td>
+                    <td><%= peer.Identity %></td>
+                    <td><%= peer.EndPoint %></td>
+                    <td><%= peer.RxFrequency %></td>
+                    <td><%= peer.TxFrequency %></td>
+                </tr>
+            <% }); %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const socket = io.connect();
+
+    socket.on('newPeerReport', (data) => {
+        if (!data) {
+            console.error("Invalid or missing peers data");
+            return;
+        }
+
+        let newPeers;
+        try {
+            newPeers = JSON.parse(data.peers);
+        } catch (e) {
+            console.error("Failed to parse peers data:", e);
+            return;
+        }
+
+        const tbody = document.getElementById('peerTbody');
+
+        tbody.innerHTML = '';
+
+        newPeers.forEach(peer => {
+            const tr = document.createElement('tr');
+
+            ['SystemName', 'PeerID', 'Identity', 'EndPoint', 'RxFrequency', 'TxFrequency'].forEach(key => {
+                const td = document.createElement('td');
+
+                // For the privacy concern on EndPoint... thanks enfield lol
+                if (key === 'EndPoint' && peer[key]) {
+                    const lastIndex = peer[key].lastIndexOf(":");
+                    if (lastIndex > 2) { // we dont go out of bounds
+                        peer[key] = `${peer[key].substring(0, lastIndex - 3)}***${peer[key].substring(lastIndex)}`;
+                    }
+                }
+
+                td.textContent = peer[key] || '';
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
+        });
+
+        const peerCountDiv = document.getElementById('peerCount');
+        peerCountDiv.textContent = "Total Peers: " + newPeers.length;
+    });
+
+</script>
+</body>
+
+</html>
